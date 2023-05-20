@@ -1,0 +1,4 @@
+name: RandomSpawn
+version: '${project.version}'
+main: com.senrua.randomspawn.RandomSpawn
+api-version: 1.19

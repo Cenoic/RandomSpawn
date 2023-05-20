@@ -1,0 +1,6 @@
+# Configuration for RandomSpawn plugin
+spawn:
+  x: 0
+  z: 0
+  radius: 3750
+respawnDelayTicks: 4
