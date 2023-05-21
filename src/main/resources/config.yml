@@ -1,6 +1,15 @@
-# Configuration for RandomSpawn plugin
+# Configuration file for RandomSpawn plugin
+
+# Spawn configuration
 spawn:
-  x: 0
-  z: 0
-  radius: 3750
-respawnDelayTicks: 4
+  x: 0    # X coordinate of the spawn point
+  z: 0    # Z coordinate of the spawn point
+  radius: 3750   # Radius around the spawn point for random teleportation
+
+respawnDelayTicks: 2
+# Delay in ticks before teleporting to random location on respawn
+# Raise this if your server is running slow and players are not randomly teleporting.
+
+# Plugin settings
+randomSpawnOnFirstJoin: true    # Whether to randomly teleport players on their first join
+randomSpawnOnRespawn: true    # Whether to randomly teleport players on respawn

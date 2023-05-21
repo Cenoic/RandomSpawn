@@ -21,6 +21,8 @@ public class RandomSpawn extends JavaPlugin implements Listener {
     private int spawnZ;
     private int spawnRadius;
     private int respawnDelayTicks;
+    private boolean randomSpawnOnFirstJoin;
+    private boolean randomSpawnOnRespawn;
     @Override
     public void onEnable() {
         saveDefaultConfig();
@@ -28,7 +30,6 @@ public class RandomSpawn extends JavaPlugin implements Listener {
         loadConfig();
 
         getServer().getPluginManager().registerEvents(this, this);
-        getLogger().info("[RandomSpawn] Successfully Loaded version 1.1 by Rainie");
     }
 
     private void loadConfig() {
@@ -37,20 +38,22 @@ public class RandomSpawn extends JavaPlugin implements Listener {
         spawnZ = config.getInt("z");
         spawnRadius = config.getInt("radius");
         respawnDelayTicks = getConfig().getInt("respawnDelayTicks");
+        randomSpawnOnFirstJoin = getConfig().getBoolean("randomSpawnOnFirstJoin");
+        randomSpawnOnRespawn = getConfig().getBoolean("randomSpawnOnRespawn");
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        // Check if player has played before using Bukkit API
-        if (player.hasPlayedBefore()) {
-            // Player has played before, do not teleport them
-            return;
+        // Check if random spawning on first join is enabled
+        if (randomSpawnOnFirstJoin) {
+            // Check if player has played before using Bukkit API
+            if (!player.hasPlayedBefore()) {
+                // Player is joining for the first time, teleport them to a random spawn location
+                teleportToRandomSpawn(player);
+            }
         }
-
-        // Player is joining for the first time, teleport them to a random spawn location
-        teleportToRandomSpawn(player);
     }
 
 
@@ -58,6 +61,9 @@ public class RandomSpawn extends JavaPlugin implements Listener {
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
 
+        if (randomSpawnOnRespawn) {
+            return;
+        }
         if (player.getBedSpawnLocation() != null) {
             return;
         }
@@ -93,6 +99,9 @@ public class RandomSpawn extends JavaPlugin implements Listener {
                         !isUnsafeBlock(spawnLocation.clone().add(1, -1, 0).getBlock()) ||
                         !isUnsafeBlock(spawnLocation.clone().add(0, -1, 1).getBlock()) ||
                         !isUnsafeBlock(spawnLocation.clone().add(-1, -1, 0).getBlock()) ||
+                        !isUnsafeBlock(spawnLocation.clone().add(0, -2, 0).getBlock()) ||
+                        !isUnsafeBlock(spawnLocation.clone().add(-1, 0, 0).getBlock()) ||
+                        !isUnsafeBlock(spawnLocation.clone().add(0, 2, 0).getBlock()) ||
                         !isUnsafeBlock(spawnLocation.clone().add(0, -1, -1).getBlock())) {
 
                     new BukkitRunnable() {
@@ -100,8 +109,6 @@ public class RandomSpawn extends JavaPlugin implements Listener {
                         public void run() {
                             if (isSafeLocation(spawnLocation)) {
                                 player.teleport(spawnLocation);
-                                getLogger().info("Teleported player " + player.getName() + " to location: " +
-                                        "X: " + x + ", Y: " + y + ", Z: " + z);
                             }
                         }
                     }.runTaskLater(this, 10L); // 20 ticks = 1 second delay
@@ -117,8 +124,6 @@ public class RandomSpawn extends JavaPlugin implements Listener {
 
         // If a suitable location is not found after the maximum attempts, teleport them to the original spawn location
         player.teleport(world.getSpawnLocation());
-        getLogger().warning("Unable to find a safe spawn location (Y64 or higher) for player " + player.getName() +
-                ". Teleported them to the world's default spawn location.");
     }
 
 
@@ -136,6 +141,6 @@ public class RandomSpawn extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        getLogger().info("[RandomSpawn] Successfully disabled version 1.1 by Rainie");
+        getLogger().info("[RandomSpawn] Issues or crashing? Asya#9999");
     }
 }
