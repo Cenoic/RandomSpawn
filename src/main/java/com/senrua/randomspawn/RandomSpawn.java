@@ -61,7 +61,7 @@ public class RandomSpawn extends JavaPlugin implements Listener {
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
 
-        if (randomSpawnOnRespawn) {
+        if (!randomSpawnOnRespawn) {
             return;
         }
         if (player.getBedSpawnLocation() != null) {
@@ -85,9 +85,9 @@ public class RandomSpawn extends JavaPlugin implements Listener {
         int maxAttempts = 5;
 
         while (attempts < maxAttempts) {
-            int x = spawnX + random.nextInt(spawnRadius * 2) - spawnRadius;
-            int z = spawnZ + random.nextInt(spawnRadius * 2) - spawnRadius;
-            int y = world.getHighestBlockYAt(x, z) + 1;
+            double x = spawnX + random.nextDouble() * spawnRadius * 2 - spawnRadius + 0.5;
+            double z = spawnZ + random.nextDouble() * spawnRadius * 2 - spawnRadius + 0.5;
+            int y = world.getHighestBlockYAt((int) x, (int) z) + 1;
 
             // Add a check for Y64 or higher to prevent players from spawning in ravines/caves/water
             if (y >= 64) {
@@ -111,7 +111,7 @@ public class RandomSpawn extends JavaPlugin implements Listener {
                                 player.teleport(spawnLocation);
                             }
                         }
-                    }.runTaskLater(this, 10L); // 20 ticks = 1 second delay
+                    }.runTaskLater(this, 10L); // 20 ticks = 1-second delay
 
                     attempts++;
                 } else {
@@ -129,7 +129,7 @@ public class RandomSpawn extends JavaPlugin implements Listener {
 
     private boolean isUnsafeBlock(Block block) {
         Material blockType = block.getType();
-        return blockType == Material.WATER || blockType == Material.LAVA;
+        return blockType == Material.WATER || blockType == Material.LAVA || blockType == Material.CACTUS || blockType == Material.FIRE || blockType == Material.MAGMA_BLOCK || blockType == Material.COBWEB || blockType == Material.SWEET_BERRY_BUSH || blockType == Material.BAMBOO || blockType == Material.LILY_PAD;
     }
     private boolean isSafeLocation(Location location) {
         Block feetBlock = location.getBlock();
@@ -141,6 +141,6 @@ public class RandomSpawn extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        getLogger().info("[RandomSpawn] Issues or crashing? Contact me on Spigot");
+        getLogger().info("[RandomSpawn] Issues, crashing, or want something added? Contact me on Discord. Arc#5404");
     }
 }
