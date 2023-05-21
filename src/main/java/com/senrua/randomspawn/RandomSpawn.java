@@ -141,6 +141,6 @@ public class RandomSpawn extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        getLogger().info("[RandomSpawn] Issues or crashing? Asya#9999");
+        getLogger().info("[RandomSpawn] Issues or crashing? Contact me on Spigot");
     }
 }
