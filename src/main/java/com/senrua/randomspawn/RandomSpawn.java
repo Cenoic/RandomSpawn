@@ -61,16 +61,21 @@ public class RandomSpawn extends JavaPlugin implements Listener {
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
 
+        getLogger().info("player respawning");
         if (!randomSpawnOnRespawn) {
-            return;
-        }
-        if (player.getBedSpawnLocation() != null) {
+            getLogger().info("Respawn denied");
             return;
         }
 
+        if (player.getBedSpawnLocation() != null) {
+            getLogger().info("Bedspawn Denied");
+            return;
+        }
+        getLogger().info("Respawn Cleared");
         new BukkitRunnable() {
             @Override
             public void run() {
+                getLogger().info("Running RandomSpawn Process");
                 teleportToRandomSpawn(player);
             }
         }.runTaskLater(this, respawnDelayTicks);
@@ -82,60 +87,54 @@ public class RandomSpawn extends JavaPlugin implements Listener {
         Random random = new Random();
 
         int attempts = 0;
-        int maxAttempts = 5;
+        int maxAttempts = 10;
 
         while (attempts < maxAttempts) {
-            double x = spawnX + random.nextDouble() * spawnRadius * 2 - spawnRadius + 0.5;
-            double z = spawnZ + random.nextDouble() * spawnRadius * 2 - spawnRadius + 0.5;
+            double x = spawnX + random.nextDouble() * spawnRadius * 2 - spawnRadius;
+            double z = spawnZ + random.nextDouble() * spawnRadius * 2 - spawnRadius;
             int y = world.getHighestBlockYAt((int) x, (int) z) + 1;
 
-            // Add a check for Y64 or higher to prevent players from spawning in ravines/caves/water
-            if (y >= 64) {
-                Location spawnLocation = new Location(world, x, y, z);
-
-                // Check if the block at the spawn location, and the block 1 in all directions is water or lava
-                if (!isUnsafeBlock(spawnLocation.getBlock()) ||
-                        !isUnsafeBlock(spawnLocation.clone().add(0, -1, 0).getBlock()) ||
-                        !isUnsafeBlock(spawnLocation.clone().add(1, -1, 0).getBlock()) ||
-                        !isUnsafeBlock(spawnLocation.clone().add(0, -1, 1).getBlock()) ||
-                        !isUnsafeBlock(spawnLocation.clone().add(-1, -1, 0).getBlock()) ||
-                        !isUnsafeBlock(spawnLocation.clone().add(0, -2, 0).getBlock()) ||
-                        !isUnsafeBlock(spawnLocation.clone().add(-1, 0, 0).getBlock()) ||
-                        !isUnsafeBlock(spawnLocation.clone().add(0, 2, 0).getBlock()) ||
-                        !isUnsafeBlock(spawnLocation.clone().add(0, -1, -1).getBlock())) {
-
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            if (isSafeLocation(spawnLocation)) {
-                                player.teleport(spawnLocation);
-                            }
-                        }
-                    }.runTaskLater(this, 10L); // 20 ticks = 1-second delay
-
-                    attempts++;
-                } else {
-                    attempts++; // Increment attempts without teleporting if location is unsafe
-                }
-            } else {
-                attempts++; // Increment attempts without teleporting if Y coordinate is less than 64
+            if (y < 63) {
+                attempts++;
+                getLogger().info("Invalid Y coordinate for spawn location: " + y);
+                continue;
             }
+
+            Location spawnLocation = new Location(world, x, y, z);
+            if (!isSafeSpawnLocation(spawnLocation)) {
+                attempts++;
+                getLogger().info("Unsafe spawn location generated: " + spawnLocation);
+                continue;
+            }
+
+            player.teleport(spawnLocation);
+            getLogger().info("Player teleported to random spawn location: " + spawnLocation);
+            return; // Stop executing the code after teleporting the player
         }
 
-        // If a suitable location is not found after the maximum attempts, teleport them to the original spawn location
         player.teleport(world.getSpawnLocation());
+        getLogger().info("Player teleported to the original spawn location.");
     }
 
+    private boolean isSafeSpawnLocation(Location location) {
+        Block centerBlock = location.getBlock();
+        Block belowBlock = location.clone().add(0, -1, 0).getBlock();
 
-    private boolean isUnsafeBlock(Block block) {
-        Material blockType = block.getType();
-        return blockType == Material.WATER || blockType == Material.LAVA || blockType == Material.CACTUS || blockType == Material.FIRE || blockType == Material.MAGMA_BLOCK || blockType == Material.COBWEB || blockType == Material.SWEET_BERRY_BUSH || blockType == Material.BAMBOO || blockType == Material.LILY_PAD;
+        Material centerBlockType = centerBlock.getType();
+        Material belowBlockType = belowBlock.getType();
+
+        return !isUnsafeBlock(centerBlockType) &&
+                !isUnsafeBlock(belowBlockType);
     }
-    private boolean isSafeLocation(Location location) {
-        Block feetBlock = location.getBlock();
-        Block headBlock = feetBlock.getRelative(0, 1, 0);
 
-        return feetBlock.getType().isSolid() && headBlock.getType().isSolid();
+    private boolean isUnsafeBlock(Material blockType) {
+        return blockType == Material.WATER ||
+                blockType == Material.LAVA ||
+                blockType == Material.CACTUS ||
+                blockType == Material.FIRE ||
+                blockType == Material.MAGMA_BLOCK ||
+                blockType == Material.SWEET_BERRY_BUSH ||
+                blockType == Material.BAMBOO;
     }
 
 
